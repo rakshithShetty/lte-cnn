@@ -4,14 +4,17 @@ import numpy as np
 import os
 import os.path as osp
 import h5py
+import scipy
+import scipy.io
 
 def read_input_file(fname, dtype=np.float32):
   if fname.split('.')[-1] == 'csv':
       datalines = open(fname).read().splitlines()
       return np.array([map(int,dl.split(',')) for dl in datalines], dtype=dtype)
   elif fname.split('.')[-1] == 'mat':
-      data_struct = h5py.File(fname,'r')
-      return np.array(data_struct[features_struct.keys()[0]]).astype(dtype)
+      data_struct = scipy.io.loadmat(fname)
+      keys = [ky for ky in data_struct.keys() if ky[0] != '_']
+      return np.array(data_struct[keys[0]]).astype(dtype)
 
 class DataProvider:
   def __init__(self, params):
