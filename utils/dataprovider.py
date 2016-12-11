@@ -3,6 +3,7 @@ import json
 import numpy as np
 import os
 import os.path as osp
+import h5py
 
 def read_input_file(fname, dtype=np.float32):
   if fname.split('.')[-1] == 'csv':
