@@ -10,7 +10,7 @@ def read_input_file(fname, dtype=np.float32):
       datalines = open(fname).read().splitlines()
       return np.array([map(int,dl.split(',')) for dl in datalines], dtype=dtype)
   elif fname.split('.')[-1] == 'mat':
-      data_struct = h5py.File(fname)
+      data_struct = h5py.File(fname,'r')
       return np.array(data_struct[features_struct.keys()[0]]).astype(dtype)
 
 class DataProvider:
