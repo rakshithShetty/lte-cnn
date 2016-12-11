@@ -21,19 +21,19 @@ class DataProvider:
     # Write the initilization code to load the preprocessed data and labels
     self.data = {}
     for splt in ['train','val', 'test']:
-      self.data[splt] = {}
-      self.data[splt]['feat'] = read_input_file(osp.join('data',params[splt+'data']))
-      # the reshape is to account for i and q channels 
-      n_samp = self.data[splt]['feat'].shape[0]
-      self.data[splt]['feat'] = self.data[splt]['feat'].reshape([n_samp,-1,2])
+      if splt+'data' in params:
+        self.data[splt] = {}
+        self.data[splt]['feat'] = read_input_file(osp.join('data',params[splt+'data']))
+        # the reshape is to account for i and q channels 
+        n_samp = self.data[splt]['feat'].shape[0]
+        self.data[splt]['feat'] = self.data[splt]['feat'].reshape([n_samp,-1,2])
 
-      # Read the labels and convert to one-hot
-      self.data[splt]['lab'] = read_input_file(osp.join('data', params[splt+'lbl']), dtype = np.int32)
-      tempZ = np.zeros([n_samp, params['num_classes']],dtype=np.int8)
-      tempZ[np.arange(n_samp),self.data[splt]['lab'].flatten()] = 1
-      self.data[splt]['lab'] = tempZ
-
-    self.feat_size = self.data['train']['feat'].shape[1:]
+        # Read the labels and convert to one-hot
+        self.data[splt]['lab'] = read_input_file(osp.join('data', params[splt+'lbl']), dtype = np.int32)
+        tempZ = np.zeros([n_samp, params['num_classes']],dtype=np.int8)
+        tempZ[np.arange(n_samp),self.data[splt]['lab'].flatten()] = 1
+        self.data[splt]['lab'] = tempZ
+    self.feat_size = self.data[self.data.keys()[0]]['feat'].shape[1:]
   
   def get_data_array(self, model, splits, cntxt=-1, shufdata=1, idx = -1):
     output = []

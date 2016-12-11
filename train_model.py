@@ -41,6 +41,7 @@ def main(params):
     print 'Conitnuing training from model %s'%(params['saved_model'])
   
   train_x, train_y, val_x, val_y = dp.get_data_array(params['model_type'], ['train', 'val'])
+
   fname, best_val_loss = modelObj.train_model(train_x, train_y, val_x, val_y, params)
 
   checkpoint = {}
@@ -90,7 +91,7 @@ if __name__ == "__main__":
   
   # Learning related parmeters
   parser.add_argument('-m', '--max_epochs', dest='max_epochs', type=int, default=20, help='number of epochs to train for')
-  parser.add_argument('-l', '--learning_rate', dest='lr', type=float, default=1e-1, help='solver learning rate')
+  parser.add_argument('-l', '--learning_rate', dest='lr', type=float, default=1e-3, help='solver learning rate')
   parser.add_argument('-b', '--batch_size', dest='batch_size', type=int, default=100, help='batch size')
   
   # Solver related parameters
