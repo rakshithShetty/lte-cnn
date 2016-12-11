@@ -4,8 +4,24 @@ import theano
 import argparse
 import json
 import os
+import os.path as osp
 from utils.dataprovider import DataProvider
 from core.cnnClassifier import CnnClassifier
+
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
+
+def plot_confusion_matrix(cm,class_names, title='Confusion matrix', cmap=plt.cm.Blues):
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(class_names))
+    plt.xticks(tick_marks, class_names, rotation=45)
+    plt.yticks(tick_marks, class_names)
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+
 
 def getModelObj(params):
   if params['model_type'] == 'MLP':
@@ -46,24 +62,18 @@ def main(params):
   
   predOut = modelObj.model.predict_classes(test_x, batch_size=100)
   accuracy =  100.0*np.sum(predOut == test_y.nonzero()[1]) / predOut.shape[0]
-  print('Accuracy of %s the test set is %0.2f'%(params['saved_model'], accuracy))
+  print('Accuracy of %s the test set is %0.2f \n Saving now...'%(params['saved_model'], accuracy))
+  
+  np.save(osp.join(params['out_dir'],'predict_out_'+cv_params['out_file_append']+'.npy'), predOut)
 
-  ## Now let's build a gradient computation graph and rmsprop update mechanism
-  ##grads = tensor.grad(cost, wrt=model.values())
-  ##lr = tensor.scalar(name='lr',dtype=config.floatX)
+  # plotting confusion matrix
+  if params['plot_confmat'] != 0:
+      cm = confusion_matrix(test_y.nonzero()[1], predOut) 
+      cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+      plt.figure()
+      plot_confusion_matrix(cm, np.arange(cv_params['num_classes']))
+      plt.show()
 
-  #num_frames_total = dp.getSplitSize('train')
-  #num_iters_one_epoch = num_frames_total/ batch_size
-  #max_iters = max_epochs * num_iters_one_epoch
-  ##
-  #for it in xrange(max_iters):
-  #  batch = dp.getBatch(batch_size)
-  #  cost = f_train(*batch)
-    
-    #cost = f_grad_shared(inp_list)
-    #f_update(params['learning_rate'])
-
-    #Save model periodically
   return modelObj
 
 
@@ -75,6 +85,8 @@ if __name__ == "__main__":
   parser.add_argument('-t','--testdata', dest='testdata', type=str, default='dummy', help='Target class for the test set')
   parser.add_argument('-tL','--testlbl', dest='testlbl', type=str, default='dummy', help='Target class for the test set')
   parser.add_argument('-m','--saved_model', dest='saved_model', type=str, default='', help='input the saved model json file to evluate on')
+  parser.add_argument('--plot_confmat', dest='plot_confmat', type=int, default=0, help='Should we plot the confusion matrix')
+  parser.add_argument('--out_dir', dest='out_dir', type=str, default='preds/', help='String to append to the filename of the trained model')
 
   # Learning related parmeters
   args = parser.parse_args()
