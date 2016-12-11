@@ -47,7 +47,7 @@ def main(params):
     
   checkpoint['params'] = params
   checkpoint['weights_file'] = fname.format(val_loss=best_val_loss)
-  filename = 'model_%s_%s_%s_%.2f.json' % (params['dataset'], params['model_type'], params['out_file_append'], best_val_loss)
+  filename = 'model_%s_%s_%.2f.json' % (params['model_type'], params['out_file_append'], best_val_loss)
   filename = os.path.join(params['out_dir'],filename)
   print 'Saving to File %s'%(filename)
   json.dump(checkpoint, open(filename,'w'))
