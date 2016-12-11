@@ -65,3 +65,4 @@ target/
 # Vim temp files
 *.swp
 *.un~
+*.swo

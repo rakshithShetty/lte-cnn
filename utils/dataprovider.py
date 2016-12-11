@@ -30,7 +30,7 @@ class DataProvider:
       # Read the labels and convert to one-hot
       self.data[splt]['lab'] = read_input_file(osp.join('data', params[splt+'lbl']), dtype = np.int32)
       tempZ = np.zeros([n_samp, params['num_classes']],dtype=np.int8)
-      tempZ[np.arange(n_samp),self.data[splt]['lab']] = 1
+      tempZ[np.arange(n_samp),self.data[splt]['lab'].flatten()] = 1
       self.data[splt]['lab'] = tempZ
 
     self.feat_size = self.data['train']['feat'].shape[1:]
