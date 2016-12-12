@@ -17,16 +17,27 @@ def read_input_file(fname, dtype=np.float32):
       return np.array(data_struct[keys[0]]).astype(dtype)
 
 class DataProvider:
-  def __init__(self, params):
+  def __init__(self, params, mean= None, std = None):
     # Write the initilization code to load the preprocessed data and labels
     self.data = {}
+    if mean != None:
+        self.mean = params['data_mean']
+        self.std = params['data_std']
     for splt in ['train','val', 'test']:
-      if splt+'data' in params:
+      if splt+'data' in params and params[splt+'data'] !=None:
         self.data[splt] = {}
         self.data[splt]['feat'] = read_input_file(osp.join('data',params[splt+'data']))
         # the reshape is to account for i and q channels 
         n_samp = self.data[splt]['feat'].shape[0]
         self.data[splt]['feat'] = self.data[splt]['feat'].reshape([n_samp,-1,2])
+        
+        #Normalize the data
+        if splt == 'train':
+            self.mean = self.data[splt]['feat'].mean(axis=0)
+            self.std = self.data[splt]['feat'].std(axis=0)
+        
+        self.data[splt]['feat'] = (self.data[splt]['feat'] - self.mean) / (2*self.std) + 0.5
+        
 
         # Read the labels and convert to one-hot
         self.data[splt]['lab'] = read_input_file(osp.join('data', params[splt+'lbl']), dtype = np.int32)

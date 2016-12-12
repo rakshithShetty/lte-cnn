@@ -6,6 +6,7 @@ from keras.layers.convolutional import Convolution1D
 from keras.layers.pooling import MaxPooling1D
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.optimizers import SGD, RMSprop, Adam
+from keras.regularizers import l2, activity_l2
 from os import path
 
 def getSolver(params):
@@ -35,17 +36,17 @@ class CnnClassifier:
 
     # First Layer takes the input directly.
     self.model.add(Convolution1D(num_layers[0], k_sz, activation='relu', border_mode='same', 
-        input_shape=input_dim))
+        input_shape=input_dim, init='glorot_uniform'))
     self.model.add(MaxPooling1D(params['max_pool_sz'], stride = params['max_pool_stride'])) 
     #Further layers don't need input specification 
     for i in xrange(len(num_layers)-1):
-        self.model.add(Convolution1D(num_layers[i+1], k_sz, activation='relu', border_mode='same')) 
+        self.model.add(Convolution1D(num_layers[i+1], k_sz, activation='relu', border_mode='same', init='glorot_uniform')) 
         # Then we add dense projection layer to map the RNN outputs to Vocab size 
         self.model.add(MaxPooling1D(params['max_pool_sz'], stride = params['max_pool_stride'])) 
         self.model.add(SpatialDropout1D(drop_prob))
 
     self.model.add(Flatten())
-    self.model.add(Dense(output_dim, init='uniform', activation='softmax'))
+    self.model.add(Dense(output_dim, init='glorot_uniform', activation='softmax', W_regularizer=l2(0.01)))
   
     self.solver = getSolver(params)
     self.model.compile(loss='categorical_crossentropy', optimizer=self.solver)

@@ -24,21 +24,32 @@ def main(params):
   batch_size = params['batch_size']
   max_epochs = params['max_epochs']
   
-  
+  if params['saved_model'] !=None: 
+    cv = json.load(open(params['saved_model'],'r'))
+    data_norm = np.load(cv['params']['data_norm_file'])
+    mean = data_norm['mean']
+    std = data_norm['std']
+    print 'Conitnuing training from model %s'%(params['saved_model'])
+  else: 
+    mean = None
+    std = None
   # fetch the data provider object
-  dp = DataProvider(params)
+  dp = DataProvider(params, mean=mean, std=std)
   params['feat_size'] = dp.feat_size
+  #Save mean and std for future use
+  filename = 'datanorm_%s_%s.npz' % (params['model_type'], params['out_file_append'])
+  filename = os.path.join(params['out_dir'],filename)
+  np.savez(filename, mean=dp.mean, std=dp.std)
+  params['data_norm_file'] = filename
+
   ## Add the model intiailization code here
-  
   modelObj = getModelObj(params)
 
   # Build the model Architecture
   f_train = modelObj.build_model(params)
   
   if params['saved_model'] !=None: 
-    cv = json.load(open(params['saved_model'],'r'))
     modelObj.model.load_weights(cv['weights_file'])
-    print 'Conitnuing training from model %s'%(params['saved_model'])
   
   train_x, train_y, val_x, val_y = dp.get_data_array(params['model_type'], ['train', 'val'])
 
@@ -77,12 +88,12 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser()
 
   # IO specs
-  parser.add_argument('-d','--traindata', dest='traindata', type=str, default='dummy', help='Input features for the training set')
-  parser.add_argument('-dL','--trainlbl', dest='trainlbl', type=str, default='dummy', help='Target class for the training set')
-  parser.add_argument('-v','--valdata', dest='valdata', type=str, default='dummy', help='Target class for the validation set')
-  parser.add_argument('-vL','--vallbl', dest='vallbl', type=str, default='dummy', help='Target class for the validation set')
-  parser.add_argument('-t','--testdata', dest='testdata', type=str, default='dummy', help='Target class for the test set')
-  parser.add_argument('-tL','--testlbl', dest='testlbl', type=str, default='dummy', help='Target class for the test set')
+  parser.add_argument('-d','--traindata', dest='traindata', type=str, default=None, help='Input features for the training set')
+  parser.add_argument('-dL','--trainlbl', dest='trainlbl', type=str, default=None, help='Target class for the training set')
+  parser.add_argument('-v','--valdata', dest='valdata', type=str, default=None, help='Target class for the validation set')
+  parser.add_argument('-vL','--vallbl', dest='vallbl', type=str, default=None, help='Target class for the validation set')
+  parser.add_argument('-t','--testdata', dest='testdata', type=str, default=None, help='Target class for the test set')
+  parser.add_argument('-tL','--testlbl', dest='testlbl', type=str, default=None, help='Target class for the test set')
 
   parser.add_argument('--num_classes', dest='num_classes', type=int, default=20, help='number of classes in the output')
   parser.add_argument('--output_file_append', dest='out_file_append', type=str, default='dummyModel', help='String to append to the filename of the trained model')
@@ -90,7 +101,7 @@ if __name__ == "__main__":
   parser.add_argument('--out_dir', dest='out_dir', type=str, default='cv/', help='String to append to the filename of the trained model')
   
   # Learning related parmeters
-  parser.add_argument('-m', '--max_epochs', dest='max_epochs', type=int, default=20, help='number of epochs to train for')
+  parser.add_argument('-m', '--max_epochs', dest='max_epochs', type=int, default=10, help='number of epochs to train for')
   parser.add_argument('-l', '--learning_rate', dest='lr', type=float, default=1e-3, help='solver learning rate')
   parser.add_argument('-b', '--batch_size', dest='batch_size', type=int, default=100, help='batch size')
   
@@ -99,9 +110,9 @@ if __name__ == "__main__":
   
   # Model architecture related parameters
   parser.add_argument('--model_type', dest='model_type', type=str, default='CNN', help='Can take values MLP, RNN or CNN')
-  parser.add_argument('--drop_prob', dest='drop_prob', type=float, default=0.0, help='what dropout to apply right after the encoder to an RNN/LSTM')
+  parser.add_argument('--drop_prob', dest='drop_prob', type=float, default=0.25, help='what dropout to apply right after the encoder to an RNN/LSTM')
   parser.add_argument('--num_layers', dest='num_layers', nargs='+',type=int, default=[64, 32, 16], help='the number of filters in different layers of the CNN')
-  parser.add_argument('--kernel_size', dest='kernel_size', nargs='+',type=int, default=5, help='the kernel size in the CNN')
+  parser.add_argument('--kernel_size', dest='kernel_size',type=int, default=10, help='the kernel size in the CNN')
   parser.add_argument('--max_pool_sz', dest='max_pool_sz',type=int, default=3, help='the kernel size in the CNN')
   parser.add_argument('--max_pool_stride', dest='max_pool_stride',type=int, default=3, help='the kernel size in the CNN')
   

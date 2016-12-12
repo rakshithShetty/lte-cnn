@@ -46,8 +46,16 @@ def main(params):
   cv_params['testlbl'] = params['testlbl']
   cv_params.pop('traindata'); cv_params.pop('valdata')
 
+  if 'data_norm_file' in cv['params']:
+    data_norm = np.load(cv['params']['data_norm_file'])
+    mean = data_norm['mean']
+    std = data_norm['std']
+  else: 
+    mean = None
+    std = None
+
   # fetch the data provider object
-  dp = DataProvider(cv_params)
+  dp = DataProvider(cv_params, mean=mean, std=std)
   ## Add the model intiailization code here
 
   
